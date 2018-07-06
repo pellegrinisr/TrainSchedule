@@ -12,45 +12,31 @@ $(document).ready(function() {
     firebase.initializeApp(config);
 
     var database = firebase.database();
-    
-    
-    var trainName = '';
-    var trainDestination = '';
-    var firstTrainTime = '';
-    var frequency = 0;
 
     var initialLoad = true;
     
     database.ref('trains/').on('value', function(snapshot) {
-        snapshot.forEach(function(childSnapshot) {
-            // var currentTime = new Date();
-            // var currentHours = currentTime.getHours();
-            // var currentMins = currentTime.getMinutes();
-            // var currentSeconds = currentTime.getSeconds();
-            // var nextTrain;
-            // var isFound = false;
-            // var i = 0;
-            //var currentTimeInMins = (currentHours * 60) + currentMins + (currentSeconds / 60);
-           // console.log(currentTimeInMins);
-            var childKey = childSnapshot.key;
-            var childData = childSnapshot.val();
-            var nextArrivalTime = findNextTime(childData.arrivalTimes);
-            console.log(childKey + ' ' + childData.trainDestination + ' ' + childData.firstTrainTime + ' ' + childData.frequency);
-            if (initialLoad) {
-                addToTable(childKey, childData.trainDestination, childData.frequency, nextArrivalTime);
-            }
-        });
+        if (initialLoad) {
+            snapshot.forEach(function(childSnapshot) {
+                var childKey = childSnapshot.key;
+                var childData = childSnapshot.val();
+                var nextArrivalTime = findNextTime(childData.arrivalTimes);
+                console.log(childKey + ' ' + childData.trainDestination + ' ' + childData.firstTrainTime + ' ' + childData.frequency);
+                var minutesAway = calcMinutesAway(nextArrivalTime);
+                addToTable(childKey, childData.trainDestination, childData.frequency, nextArrivalTime, minutesAway);
+            });
+        }
         
     });
 
     $('#add-train-button').on('click', function() {
         if (validateInput()) {
-            var arrivalTimeArray = [];
             initialLoad = false;
-            trainName = $('#train-name').val().trim();
-            trainDestination = $("#destination").val().trim();
-            firstTrainTime = $('#first-train-time').val().trim();
-            frequency = $('#frequency').val().trim();
+            var arrivalTimeArray = [];
+            var trainName = $('#train-name').val().trim();
+            var trainDestination = $("#destination").val().trim();
+            var firstTrainTime = $('#first-train-time').val().trim();
+            var frequency = $('#frequency').val().trim();
             console.log(trainName);
             console.log(trainDestination);
             console.log(firstTrainTime);
@@ -70,16 +56,16 @@ $(document).ready(function() {
                 frequency: frequency,
                 arrivalTimes: arrivalTimeArray
             });
-            var nextArrivalString = findNextTime(arrivalTimeArray)
+            var nextArrivalString = findNextTime(arrivalTimeArray);
+            var minutesAway = calcMinutesAway(nextArrivalString);
             console.log(newPostRef);
-            addToTable(trainName, trainDestination, frequency, nextArrivalString);
+            addToTable(trainName, trainDestination, frequency, nextArrivalString, minutesAway);
             clearForm();
-            
         }
         
     });
 
-    function addToTable(name, dest, freq, nextArrivalString) {
+    function addToTable(name, dest, freq, nextArrivalString, minutesAway) {
         var newRowTag = $('<tr>');
         newRowTag.addClass('data-for-train');
         var trainNameDataTag = $('<td>');
@@ -94,6 +80,9 @@ $(document).ready(function() {
         var nextArrivalDataTag = $('<td>');
         nextArrivalDataTag.html(nextArrivalString);
         newRowTag.append(nextArrivalDataTag);
+        var minutesAwayDataTag = $('<td>');
+        minutesAwayDataTag.html(minutesAway);
+        newRowTag.append(minutesAwayDataTag);
         $('.train-data').append(newRowTag);
 
     }
@@ -164,5 +153,14 @@ $(document).ready(function() {
         }
         var nextArrivalString = nextTimeHours + ':' + nextTimeMins;
         return nextArrivalString;
+    }
+
+    function calcMinutesAway(arrivalTimeString) {
+        var time = new Date();
+        var timeInMins = time.getHours() * 60 + time.getMinutes();
+        var nextTimeAfterSplit = arrivalTimeString.split(':');
+        var nextTimeInMins= nextTimeAfterSplit[0] * 60 + parseInt(nextTimeAfterSplit[1]);
+        var minutesAway = nextTimeInMins - timeInMins;
+        return minutesAway;
     }
 });
