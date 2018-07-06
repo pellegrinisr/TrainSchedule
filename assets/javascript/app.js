@@ -18,7 +18,7 @@ $(document).ready(function() {
     var trainDestination = '';
     var firstTrainTime = '';
     var frequency = 0;
-    var arrivalTimeArray = [];
+
     var initialLoad = true;
     
     database.ref('trains/').on('value', function(snapshot) {
@@ -45,6 +45,7 @@ $(document).ready(function() {
 
     $('#add-train-button').on('click', function() {
         if (validateInput()) {
+            var arrivalTimeArray = [];
             initialLoad = false;
             trainName = $('#train-name').val().trim();
             trainDestination = $("#destination").val().trim();
@@ -154,6 +155,13 @@ $(document).ready(function() {
         console.log('hours: ' + nextTimeHours);
         var nextTimeMins = nextTrain % 60;
         console.log('minutes: ' + nextTimeMins);
+
+        if (nextTimeHours <= 9) {
+            nextTimeHours = '0' + nextTimeHours;
+        }
+        if (nextTimeMins === 0) { 
+            nextTimeMins = '0' + nextTimeMins;
+        }
         var nextArrivalString = nextTimeHours + ':' + nextTimeMins;
         return nextArrivalString;
     }
