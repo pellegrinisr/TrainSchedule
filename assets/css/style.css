@@ -1,5 +1,12 @@
-.bottom-of-page {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
+     
+.error-message {
+    padding-left: 2rem;
+    color: red;
+    display: none;
+}
+.form-control {
+    line-height: 1;
+}
+label {
+    font-size: .75rem;
 }

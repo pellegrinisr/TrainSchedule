@@ -19,9 +19,7 @@
     </div>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-12">
-                <h4>Current Train Schedule</h4>
-            </div>
+            <div class="col-12">Current Train Schedule</div>
         </div>
         <table class="table">
             <thead>
@@ -34,35 +32,33 @@
                 </tr>
             </thead>
             <tbody class="train-data">
-
+                <!--this is where the user-generated train data will go-->
             </tbody>
         </table>
-        <div class="bottom-of-page">
-            <div class="row">
-                <div class="col-12"><h4>Add Train</h4></div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <form>
-                        <div class="form-group">
-                            <label for="train-name">Train Name</label>
-                            <input type="text" class="form-control" id="train-name">
-                        </div>
-                        <div class='form-group'>
-                            <label for="destination">Destination</label>
-                            <input type="text" class="form-control" id="destination">
-                        </div>
-                        <div class="form-group">
-                            <label for="first-train-time">First Train Time (HH:MM - military time)</label>
-                            <input type="text" class="form-control" id="first-train-time">
-                        </div>
-                        <div class="form-group">
-                            <label for="frequency">Frequency (min)</label>
-                            <input type="text" class="form-control" id="frequency">
-                        </div>
-                        <button type="button" class="btn btn-primary" id="add-train-button">Submit</button>
-                    </form>
-                </div>
+        <div class="row">
+            <div class="col-12">Add Train</div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <form>
+                    <div class="form-group">
+                        <label for="train-name">Train Name</label><span class="error-message" id="name-error">Please Add Train Name</span>
+                        <input type="text" class="form-control" id="train-name">
+                    </div>
+                    <div class='form-group'>
+                        <label for="destination">Destination</label><span class="error-message" id="destination-error">Please Add Destination</span>
+                        <input type="text" class="form-control" id="destination">
+                    </div>
+                    <div class="form-group">
+                        <label for="first-train-time">First Train Time (HH:MM - military time)</label><span class="error-message" id="first-time-error">Please Add First Departure Time</span>
+                        <input type="text" class="form-control" id="first-train-time">
+                    </div>
+                    <div class="form-group">
+                        <label for="frequency">Frequency (min)</label><span class="error-message" id="frequency-error">Please Add Frequency</span>
+                        <input type="text" class="form-control" id="frequency">
+                    </div>
+                    <button type="button" class="btn btn-primary" id="add-train-button">Submit</button>
+                </form>
             </div>
         </div>
     </div>
