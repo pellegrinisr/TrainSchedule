@@ -34,26 +34,11 @@ $(document).ready(function() {
            // console.log(currentTimeInMins);
             var childKey = childSnapshot.key;
             var childData = childSnapshot.val();
+            var nextArrivalTime = findNextTime(childData.arrivalTimes);
             console.log(childKey + ' ' + childData.trainDestination + ' ' + childData.firstTrainTime + ' ' + childData.frequency);
             if (initialLoad) {
-                addToTable(childKey, childData.trainDestination, childData.frequency);
+                addToTable(childKey, childData.trainDestination, childData.frequency, nextArrivalTime);
             }
-            // while(!isFound && i < childData.arrivalTimes.length) {
-            //     console.log(childData.arrivalTimes[i]);
-            //     if (currentTimeInMins < childData.arrivalTimes[i]) {
-                
-            //         var foundIndex = i - 1;
-            //         console.log(foundIndex);
-            //         nextTrain = childData.arrivalTimes[foundIndex];
-            //         isFound = true;
-            //     } else {
-            //         i++;
-            //     }
-            // }
-            // console.log(nextTrain);
-            // var nextTrainMinutes = nextTrain % 60;
-            // console.log(nextTrainMinutes);
-            findNextTime(childData.arrivalTimes);
         });
         
     });
@@ -78,30 +63,22 @@ $(document).ready(function() {
             for (var i = firstTimeInMins; i <= 1440; i+=parseInt(frequency)) {
                 arrivalTimeArray.push(i);
             }
-            var nextTrainTimeInMins = findNextTime(arrivalTimeArray);
-            var nextTimeHours = parseInt(nextTrainTimeInMins / 60);
-            console.log('hours: ' + nextTimeHours);
-            var nextTimeMins = nextTrainTimeInMins % 60;
-            console.log('minutes: ' + nextTimeMins);
             var newPostRef = database.ref('trains/' + trainName).set({
                 trainDestination: trainDestination,
                 firstTrainTime: firstTrainTime,
                 frequency: frequency,
                 arrivalTimes: arrivalTimeArray
             });
-            // var postID = newPostRef.key;
-            // keyArray.push(postID);
-            // console.log(postID);
-            // console.log(keyArray);
+            var nextArrivalString = findNextTime(arrivalTimeArray)
             console.log(newPostRef);
-            addToTable(trainName, trainDestination, frequency);
+            addToTable(trainName, trainDestination, frequency, nextArrivalString);
             clearForm();
             
         }
         
     });
 
-    function addToTable(name, dest, freq) {
+    function addToTable(name, dest, freq, nextArrivalString) {
         var newRowTag = $('<tr>');
         newRowTag.addClass('data-for-train');
         var trainNameDataTag = $('<td>');
@@ -113,6 +90,9 @@ $(document).ready(function() {
         var frequencyDataTag = $('<td>');
         frequencyDataTag.html(freq);
         newRowTag.append(frequencyDataTag);
+        var nextArrivalDataTag = $('<td>');
+        nextArrivalDataTag.html(nextArrivalString);
+        newRowTag.append(nextArrivalDataTag);
         $('.train-data').append(newRowTag);
 
     }
@@ -159,14 +139,8 @@ $(document).ready(function() {
         while(!isFound && i < arrayArrivalTimes.length) {
             console.log(arrayArrivalTimes[i]);
             if (currentTimeInMins < arrayArrivalTimes[i]) {
-                var foundIndex;
-                if (i === 0) {
-                    foundIndex = i;
-                } else {
-                    foundIndex = i - 1;
-                }
-                console.log(foundIndex);
-                nextTrain = arrayArrivalTimes[foundIndex];
+                console.log(i);
+                nextTrain = arrayArrivalTimes[i];
                 isFound = true;
             } else if (i === arrayArrivalTimes.length - 1) {
                 isFound = true;
@@ -176,6 +150,11 @@ $(document).ready(function() {
             }
         }
         console.log(nextTrain);
-        return nextTrain;
+        var nextTimeHours = parseInt(nextTrain / 60);
+        console.log('hours: ' + nextTimeHours);
+        var nextTimeMins = nextTrain % 60;
+        console.log('minutes: ' + nextTimeMins);
+        var nextArrivalString = nextTimeHours + ':' + nextTimeMins;
+        return nextArrivalString;
     }
 });
