@@ -8,26 +8,11 @@ $(document).ready(function() {
         storageBucket: "",
         messagingSenderId: "637219215012"
     };
-    
     firebase.initializeApp(config);
 
     var database = firebase.database();
 
-    var initialLoad = true;
-    
-    database.ref('trains/').on('value', function(snapshot) {
-        if (initialLoad) {
-            snapshot.forEach(function(childSnapshot) {
-                var childKey = childSnapshot.key;
-                var childData = childSnapshot.val();
-                var nextArrivalTime = findNextTime(childData.arrivalTimes);
-                console.log(childKey + ' ' + childData.trainDestination + ' ' + childData.firstTrainTime + ' ' + childData.frequency);
-                var minutesAway = calcMinutesAway(nextArrivalTime);
-                addToTable(childKey, childData.trainDestination, childData.frequency, nextArrivalTime, minutesAway);
-            });
-        }
-        
-    });
+    database.ref('trains/').on('value', onValueUpdate);
 
     $('#add-train-button').on('click', function() {
         if (validateInput()) {
@@ -50,20 +35,28 @@ $(document).ready(function() {
             for (var i = firstTimeInMins; i <= 1440; i+=parseInt(frequency)) {
                 arrivalTimeArray.push(i);
             }
-            var newPostRef = database.ref('trains/' + trainName).set({
+            database.ref('trains/' + trainName).set({
                 trainDestination: trainDestination,
                 firstTrainTime: firstTrainTime,
                 frequency: frequency,
                 arrivalTimes: arrivalTimeArray
             });
-            var nextArrivalString = findNextTime(arrivalTimeArray);
-            var minutesAway = calcMinutesAway(nextArrivalString);
-            console.log(newPostRef);
-            addToTable(trainName, trainDestination, frequency, nextArrivalString, minutesAway);
             clearForm();
         }
-        
     });
+
+    function onValueUpdate(snapshot) {
+        $('.train-data').html('');
+        snapshot.forEach(function(childSnapshot) {
+            var childKey = childSnapshot.key;
+            var childData = childSnapshot.val();
+            console.log('child data array: ' + childData.arrivalTimes);
+            var nextArrivalTime = findNextTime(childData.arrivalTimes);
+            console.log(childKey + ' ' + childData.trainDestination + ' ' + childData.firstTrainTime + ' ' + childData.frequency);
+            var minutesAway = calcMinutesAway(nextArrivalTime);
+            addToTable(childKey, childData.trainDestination, childData.frequency, nextArrivalTime, minutesAway);
+        });
+    }
 
     function addToTable(name, dest, freq, nextArrivalString, minutesAway) {
         var newRowTag = $('<tr>');
@@ -84,27 +77,45 @@ $(document).ready(function() {
         minutesAwayDataTag.html(minutesAway);
         newRowTag.append(minutesAwayDataTag);
         $('.train-data').append(newRowTag);
-
     }
 
     function validateInput() {
         var validEntry = true;
+        var firstTimeString = $('#first-train-time').val(); 
+        var trainFrequency = $('#frequency').val();
         if (!$('#train-name').val()) {
             $('#name-error').show();
             validEntry = false;
-        } 
+        } else {
+            $('#name-error').hide();
+        }
         if (!$('#destination').val()) {
-            console.log('entered second if');
             $('#destination-error').show();
             validEntry = false;
+        } else {
+            $('#destination-error').hide();
         }
-        if (!$('#first-train-time').val()) {
+        if (!firstTimeString) {
+            $('#first-time-error').html('Please Add First Departure Time')
             $('#first-time-error').show();
             validEntry = false;
+        } else if (firstTimeString[2] !== ':' || firstTimeString.length !== 5) {
+            $('#first-time-error').html('Invalid Time Format.  Please Enter Time HH:MM.');
+            $('#first-time-error').show();
+            validEntry = false;
+        } else {
+            $('#first-time-error').hide();
         }
-        if (!$('#frequency').val()) {
+        if (!trainFrequency) {
+            $('#frequency-error').html('Please Add Frequency');
             $('#frequency-error').show();
             validEntry = false;
+        } else if (trainFrequency > 1440 || trainFrequency <= 0) {
+            $('#frequency-error').html('Train Frequency Invalid -- Value Must Be Between 1 and 1440');
+            $('#frequency-error').show();
+            validEntry = false;
+        } else {
+            $('#frequency-error').hide();
         }
         return validEntry;
     }
@@ -159,8 +170,12 @@ $(document).ready(function() {
         var time = new Date();
         var timeInMins = time.getHours() * 60 + time.getMinutes();
         var nextTimeAfterSplit = arrivalTimeString.split(':');
-        var nextTimeInMins= nextTimeAfterSplit[0] * 60 + parseInt(nextTimeAfterSplit[1]);
+        var nextTimeInMins = nextTimeAfterSplit[0] * 60 + parseInt(nextTimeAfterSplit[1]);
         var minutesAway = nextTimeInMins - timeInMins;
+        if (minutesAway < 0) {
+            var minsTillMidnight = 1440 - timeInMins;
+            minutesAway = minsTillMidnight + nextTimeInMins;
+        }
         return minutesAway;
     }
 });
